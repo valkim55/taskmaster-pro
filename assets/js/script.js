@@ -50,8 +50,7 @@ var saveTasks = function() {
 
 // enable coloring the tasks if the due date is coming soon
 var auditTask = function(taskEl) {
-  console.log(taskEl);
-
+  
   /* when a tasl element is sent to the auditTask(), we can get the date information and parse it into a moment object. using jquery we select the taskel element
   and find the <span> element inisde it, then retrieve the text value using .text() */
   //get date from task element
@@ -77,6 +76,7 @@ var auditTask = function(taskEl) {
   else if (Math.abs(moment().diff(time, "days")) <=2) {
     $(taskEl).addClass("list-group-item-warning");
   }
+  console.log(taskEl);
 };
 
 
@@ -209,18 +209,26 @@ $(".card .list-group").sortable({
 
   // activate and deactivate events trigger once for all connected lists as soon as dragging starts and stops
   activate: function(event) {
-    console.log("activate", this);
+    //console.log("activate", this);
+    $(this).addClass(".drop-over");
+    $(".bottom-trash").addClass(".bottom-trash-drag");
   },
   deactivate: function(event) {
-    console.log("deactivate", this);
+    //console.log("deactivate", this);
+    $(this).removeClass(".dropover");
+    $(".bottom-trash").removeClass(".bottom-trash-drag");
   },
 
   // over and out events trigger when a dragged elements enters or elaves the connected list
   over: function(event) {
-    console.log("over", event.target);
+    //console.log("over", event.target);
+    $(event.target).addClass(".dropover-active");
+    $(".bottom-trash").addClass(".bottom-trash-active");
   },
   out: function(event) {
-    console.log("out", event.target);
+    //console.log("out", event.target);
+    $(event.target).removeClass(".dropover-active");
+    $(".bottom-trash").removeClass(".bottom-trash-active");
   }, 
   
   // update triggers when the contents of a list have changed (re-ordered, removed etc)
@@ -270,7 +278,7 @@ $("#task-form-modal").on("shown.bs.modal", function() {
 });
 
 // save button in modal was clicked
-$("#task-form-modal .btn-primary").click(function() {
+$("#task-form-modal .btn-save").click(function() {
   // get form values
   var taskText = $("#modalTaskDescription").val();
   var taskDate = $("#modalDueDate").val();
@@ -337,3 +345,21 @@ $("#modalDueDate").datepicker({
 loadTasks();
 
 
+// set a timer to refresh the page every 30 minutes, so if the users leave the browser open the dates refresh and notify users if due date is coming:
+
+/*setTimeout() was given two arguments: callback function and a number. callback function is executed after an amout of time has passed (the number). 
+the execution only happens once after 5 seconds passed, which doesn't work in this case since we need to refresh the tasks dates every 30 minutes */
+// setTimeout(function() {
+//   alert("This message happens every 5 seconds");
+// }, 5000);
+
+// this method works perfectly, beacuse every time 5 seconds passes an alert message shows up and it repeats infinite amount of times
+/* jQuery selector passes each element it finds using the selector into the callback function, and that element is expressed in the EL argument of the function.
+auditTask() then passes the element to its routine using the EL argument ---> we're basically looping over eveyr task with a class .list-group-item
+and execute auditTask() to check the due date of each one. */
+setInterval(function() {
+  $(".card .list-group-item").each(function(index, el) {
+    auditTask(el);
+    
+  });
+}, (1000 * 60) * 30);
