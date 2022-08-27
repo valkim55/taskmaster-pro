@@ -55,14 +55,14 @@ var auditTask = function(taskEl) {
   and find the <span> element inisde it, then retrieve the text value using .text() */
   //get date from task element
   var date = $(taskEl).find("span").text().trim();
-  console.log(date);
+  //console.log(date);
 
   /* first, use date variable DATE to make a new moment object, configured for the suer's local time useing moment(date, "L"). 
   because the date variable didn't specify time of the day the moment object will default to 12am. that's why we converted it to 17 which is 5pm using .set("hour", 17) */
   //convert to moment object at 5pm
   var time = moment(date, "L").set("hour", 17);
   //should print out the object for the value of the date variable but at 5pm of that date
-  console.log(time);
+  //console.log(time);
 
   //now let's check if the date has passed
   //remove all classes from element so we can replace them with an appropriate color after
@@ -78,6 +78,142 @@ var auditTask = function(taskEl) {
   }
   console.log(taskEl);
 };
+
+
+// use jQuery selector to find all .list=group elements and then call a new jquery UI method on them
+// allows to drag the tasks and move them around within and across the columns
+$(".card .list-group").sortable({
+  connectWith: $(".card .list-group"),
+  scroll: false,
+  tolerance: "pointer",
+
+  // helper:clone tells jQuery to create a copy of the dragged element and move the ocpy instead of original (prevents click events form triggering on the original element)
+  helper: "clone",
+
+  // activate and deactivate events trigger once for all connected lists as soon as dragging starts and stops
+  activate: function(event) {
+    //console.log("activate", this);
+    $(this).addClass(".drop-over");
+    $(".bottom-trash").addClass(".bottom-trash-drag");
+  },
+  deactivate: function(event) {
+    //console.log("deactivate", this);
+    $(this).removeClass(".dropover");
+    $(".bottom-trash").removeClass(".bottom-trash-drag");
+  },
+
+  // over and out events trigger when a dragged elements enters or elaves the connected list
+  over: function(event) {
+    //console.log("over", event.target);
+    $(event.target).addClass(".dropover-active");
+  },
+  out: function(event) {
+    //console.log("out", event.target);
+    $(event.target).removeClass(".dropover-active");
+  }, 
+  
+  // update triggers when the contents of a list have changed (re-ordered, removed etc)
+  update: function(event) {
+
+    //array to store the task data that we use below in the loop. 
+    var tempArr = [];
+
+    // 'this' refers to the list that's currently being affected by update
+    // thanks to children() method updated list elements match those saved in the localStorage. Next we need to loop over the elements pushing their text values into a new tasks array
+    // each() method calls a callback function on each loop iteration, running a callback fundtion for every item/element in the array
+    $(this).children().each(function() {
+      // loop over current set of children in sortable list
+      var text = $(this).find("p").text().trim();
+      var date = $(this).find("span").text().trim();
+      
+      // combine task data in an object to push into an array above
+      tempArr.push({
+        text: text,
+        date: date
+      });
+    });
+    console.log(tempArr);
+
+    // get each tasktype's id to match object property
+    var arrName = $(this)
+    .attr("id")
+    .replace("list-", "");
+
+    // update array on task object and save, so now once we drag the tasks between different types of lists if we refresh the browser they'll stay in a new place
+    tasks[arrName] = tempArr;
+    saveTasks();
+  }
+});
+
+
+
+// drag the tasks to the trash container one by one
+$("#trash").droppable({
+  accept: ".card .list-group-item",
+  tolerance: "touch",
+
+  // ui is an object that contains the property called draggable
+  drop: function(event, ui) {
+    ui.draggable.remove();
+    $(".bottom-trash").removeClass("bottom-trash-active");
+  },
+  over: function(event, ui) {
+    //console.log("over");
+    $(".bottom-trash").addClass(".bottom-trash-active");
+  },
+  out: function(event, ui) {
+    console.log("out");
+    $(".bottom-trash").removeClass(".bottom-trash-active");
+  }
+});
+
+// if we were to write the drag function in plain javascript it'd have been:
+/* pageContentEl.addEventListener("dragstart", function(event) {
+
+}); */
+
+// add a datepicker 
+$("#modalDueDate").datepicker({
+  // set minDate option to disable picking the date that has already passed. sets how many days after the current date we need the limit to kick in
+  minDate: 1
+});
+
+
+
+// modal was triggered
+$("#task-form-modal").on("show.bs.modal", function() {
+  // clear values
+  $("#modalTaskDescription, #modalDueDate").val("");
+});
+
+// modal is fully visible
+$("#task-form-modal").on("shown.bs.modal", function() {
+  // highlight textarea
+  $("#modalTaskDescription").trigger("focus");
+});
+
+// save button in modal was clicked
+$("#task-form-modal .btn-save").click(function() {
+  // get form values
+  var taskText = $("#modalTaskDescription").val();
+  var taskDate = $("#modalDueDate").val();
+
+  // make sure user inputs both: task description and date
+  if (taskText && taskDate) {
+    createTask(taskText, taskDate, "toDo");
+
+    // close modal
+    $("#task-form-modal").modal("hide");
+
+    // save in tasks array
+    tasks.toDo.push({
+      text: taskText,
+      date: taskDate
+    });
+
+    saveTasks();
+  }
+});
 
 
 // using class list-group to delegate clicks from <p> elements to the parent <ul>
@@ -197,109 +333,6 @@ $(".list-group").on("change", "input[type='text']", function() {
 });
 
 
-// use jQuery selector to find all .list=group elements and then call a new jquery UI method on them
-// allows to drag the tasks and move them around within and across the columns
-$(".card .list-group").sortable({
-  connectWith: $(".card .list-group"),
-  scroll: false,
-  tolerance: "pointer",
-
-  // helper:clone tells jQuery to create a copy of the dragged element and move the ocpy instead of original (prevents click events form triggering on the original element)
-  helper: "clone",
-
-  // activate and deactivate events trigger once for all connected lists as soon as dragging starts and stops
-  activate: function(event) {
-    //console.log("activate", this);
-    $(this).addClass(".drop-over");
-    $(".bottom-trash").addClass(".bottom-trash-drag");
-  },
-  deactivate: function(event) {
-    //console.log("deactivate", this);
-    $(this).removeClass(".dropover");
-    $(".bottom-trash").removeClass(".bottom-trash-drag");
-  },
-
-  // over and out events trigger when a dragged elements enters or elaves the connected list
-  over: function(event) {
-    //console.log("over", event.target);
-    $(event.target).addClass(".dropover-active");
-    $(".bottom-trash").addClass(".bottom-trash-active");
-  },
-  out: function(event) {
-    //console.log("out", event.target);
-    $(event.target).removeClass(".dropover-active");
-    $(".bottom-trash").removeClass(".bottom-trash-active");
-  }, 
-  
-  // update triggers when the contents of a list have changed (re-ordered, removed etc)
-  update: function(event) {
-
-    //array to store the task data that we use below in the loop. 
-    var tempArr = [];
-
-    // 'this' refers to the list that's currently being affected by update
-    // thanks to children() method updated list elements match those saved in the localStorage. Next we need to loop over the elements pushing their text values into a new tasks array
-    // each() method calls a callback function on each loop iteration, running a callback fundtion for every item/element in the array
-    $(this).children().each(function() {
-      // loop over current set of children in sortable list
-      var text = $(this).find("p").text().trim();
-      var date = $(this).find("span").text().trim();
-      
-      // combine task data in an object to push into an array above
-      tempArr.push({
-        text: text,
-        date: date
-      });
-    });
-    console.log(tempArr);
-
-    // get each tasktype's id to match object property
-    var arrName = $(this)
-    .attr("id")
-    .replace("list-", "");
-
-    // update array on task object and save, so now once we drag the tasks between different types of lists if we refresh the browser they'll stay in a new place
-    tasks[arrName] = tempArr;
-    saveTasks();
-  }
-});
-
-
-// modal was triggered
-$("#task-form-modal").on("show.bs.modal", function() {
-  // clear values
-  $("#modalTaskDescription, #modalDueDate").val("");
-});
-
-// modal is fully visible
-$("#task-form-modal").on("shown.bs.modal", function() {
-  // highlight textarea
-  $("#modalTaskDescription").trigger("focus");
-});
-
-// save button in modal was clicked
-$("#task-form-modal .btn-save").click(function() {
-  // get form values
-  var taskText = $("#modalTaskDescription").val();
-  var taskDate = $("#modalDueDate").val();
-
-  // make sure user inputs both: task description and date
-  if (taskText && taskDate) {
-    createTask(taskText, taskDate, "toDo");
-
-    // close modal
-    $("#task-form-modal").modal("hide");
-
-    // save in tasks array
-    tasks.toDo.push({
-      text: taskText,
-      date: taskDate
-    });
-
-    saveTasks();
-  }
-});
-
 // remove all tasks
 $("#remove-tasks").on("click", function() {
   for (var key in tasks) {
@@ -309,36 +342,6 @@ $("#remove-tasks").on("click", function() {
   saveTasks();
 });
 
-
-// drag the tasks to the trash container one by one
-$("#trash").droppable({
-  accept: ".card .list-group-item",
-  tolerance: "touch",
-
-  // ui is an object that contains the property called draggable
-  drop: function(event, ui) {
-    ui.draggable.remove();
-    console.log("drop");
-  },
-  over: function(event, ui) {
-    console.log("over");
-  },
-  out: function(event, ui) {
-    console.log("out");
-  }
-});
-
-// if we were to write the drag function in plain javascript it'd have been:
-/* pageContentEl.addEventListener("dragstart", function(event) {
-
-}); */
-
-
-// add a datepicker 
-$("#modalDueDate").datepicker({
-  // set minDate option to disable picking the date that has already passed. sets how many days after the current date we need the limit to kick in
-  minDate: 1
-});
 
 
 // load tasks for the first time
