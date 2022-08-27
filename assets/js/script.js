@@ -93,7 +93,7 @@ $(".card .list-group").sortable({
   // activate and deactivate events trigger once for all connected lists as soon as dragging starts and stops
   activate: function(event) {
     //console.log("activate", this);
-    $(this).addClass(".drop-over");
+    $(this).addClass(".dropover");
     $(".bottom-trash").addClass(".bottom-trash-drag");
   },
   deactivate: function(event) {
@@ -221,7 +221,7 @@ $("#task-form-modal .btn-save").click(function() {
 $(".list-group").on("click", "p", function() {
   var text = $(this).text().trim(); //doesn't work!
   //var text = $(this).text();
-  console.log(text);
+  //console.log(text);
 
   /* if it was $("textarea") it'd tell jQuery to find all existing <textarea> elements - it uses the element name as a selector, 
   but this syntax tells jQuery to create a new <textarea> element - using the HTML syntax <> to indicate that the element is to be created*/
