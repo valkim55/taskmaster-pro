@@ -15,14 +15,6 @@ h6 {
   font-family: "Staatliches", sans-serif;
 }
 
-.dropover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
-.dropover-active {
-  background-color: rgba(0, 0, 0, 0.9);
-}
-
 .bottom-trash {
   opacity: 0;
   color: #f1f1f1;
@@ -40,6 +32,14 @@ h6 {
 
 .bottom-trash-active {
   background-color: rgba(234, 0, 39, 1);
+}
+
+.dropover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.dropover-active {
+  background-color: rgba(0, 0, 0, 0.9);
 }
 
 .btn-add,

@@ -91,25 +91,25 @@ $(".card .list-group").sortable({
   helper: "clone",
 
   // activate and deactivate events trigger once for all connected lists as soon as dragging starts and stops
-  activate: function(event) {
+  activate: function(event, ui) {
     //console.log("activate", this);
-    $(this).addClass(".dropover");
-    $(".bottom-trash").addClass(".bottom-trash-drag");
+    $(this).addClass("dropover");
+    $(".bottom-trash").addClass("bottom-trash-drag");
   },
-  deactivate: function(event) {
+  deactivate: function(event, ui) {
     //console.log("deactivate", this);
-    $(this).removeClass(".dropover");
-    $(".bottom-trash").removeClass(".bottom-trash-drag");
+    $(this).removeClass("dropover");
+    $(".bottom-trash").removeClass("bottom-trash-drag");
   },
 
   // over and out events trigger when a dragged elements enters or elaves the connected list
   over: function(event) {
     //console.log("over", event.target);
-    $(event.target).addClass(".dropover-active");
+    $(event.target).addClass("dropover-active");
   },
   out: function(event) {
     //console.log("out", event.target);
-    $(event.target).removeClass(".dropover-active");
+    $(event.target).removeClass("dropover-active");
   }, 
   
   // update triggers when the contents of a list have changed (re-ordered, removed etc)
@@ -158,12 +158,11 @@ $("#trash").droppable({
     $(".bottom-trash").removeClass("bottom-trash-active");
   },
   over: function(event, ui) {
-    //console.log("over");
-    $(".bottom-trash").addClass(".bottom-trash-active");
+    console.log(ui);
+    $(".bottom-trash").addClass("bottom-trash-active");
   },
   out: function(event, ui) {
-    console.log("out");
-    $(".bottom-trash").removeClass(".bottom-trash-active");
+    $(".bottom-trash").removeClass("bottom-trash-active");
   }
 });
 
